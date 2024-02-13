@@ -24,6 +24,8 @@
 
     &__control-container {
 
+        font-size: var(--input-control-font-size, 1em);
+
         position: relative;
         // width: fit-content;
         width: 100%;
@@ -214,8 +216,8 @@
             left: 0;
             opacity: 1;
             outline: 2px solid rgba(var(--foreground-rgb), .25);
-            border-radius: var(--input-border-radius, var(--border-radius));
-
+            // border-radius: var(--input-border-radius, var(--border-radius));
+border-radius: 3em;
             content: "";
             width: 100%;
             height: 100%;
@@ -224,7 +226,8 @@
 
     &__option {
         padding: calc(var(--space) / 3) calc(var(--space) / 1.5);
-        border-radius: var(--input-border-radius, var(--border-radius));
+        // border-radius: var(--input-border-radius, var(--border-radius));
+        border-radius: 3em;
 
         // background-color: var(--background);
         color: var(--foreground);
@@ -239,8 +242,8 @@
         }
 
         &--inactive {
+            opacity: .5;
 
-            // border: 1px solid red;
         }
 
         &-label {

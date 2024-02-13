@@ -11,14 +11,16 @@
         <InputSwitch v-model="calcType" :options="calculationOptions" />
       </FormField>
       <FormField>
-        <FormGroup>
-          <InputNumber label="Amount" v-model="amount" />
-          <InputNumber v-if="calcType == 'percentage'" label="of Amount" v-model="amount2" />
+        <FormGroup v-if="calcType == CalcType.PERCENTAGE">
+          <InputNumber label="Amount" v-model="amount"  />
+          <InputNumber label="of Amount" v-model="amount2" />
+        </FormGroup>
+        <FormGroup v-else-if="calcType == CalcType.VAT">
+          <InputNumber label="Amount" v-model="amount" :style="`--input-control-font-size: 2em`" />
         </FormGroup>
         <FormGroup v-if="calcType == CalcType.VAT">
           <InputNumber label="Percentage" v-model="percentage" />
           <InputSwitch v-model="direction" :options="directionOptions" />
-          <InputSelect label="Currency" v-model="currency" :options="currencies" />
         </FormGroup>
       </FormField>
     </div>
@@ -26,7 +28,7 @@
     <div :class="bemm('result')" v-if="calcType == CalcType.PERCENTAGE">
       <div :class="bemm('column')">
 
-        {{ amount2 }} is <strong>{{ calculatedPercentage }}%</strong> of {{ amount }}
+        {{ amount }} is <strong>{{ calculatedPercentage }}%</strong> of {{ amount2 }}
 
       </div>
     </div>
@@ -93,6 +95,13 @@
         </p>
 
       </div>
+    </div>
+
+    <div :class="bemm('settings')">
+
+      <FormField>
+        <InputSelect v-if="calcType == CalcType.VAT" label="Currency" v-model="currency" :options="currencies" />
+      </FormField>
     </div>
   </div>
 </template>
@@ -230,7 +239,7 @@ const exclusive = computed(() => {
 const calculatedPercentage = computed(() => {
 
 
-  return pad((amount2.value / amount.value) * 100)
+  return pad((amount.value / amount2.value) * 100)
 
 })
 
@@ -246,6 +255,11 @@ const calculatedPercentage = computed(() => {
 
   &__input {
 
+    background-color: black;
+    border-radius: var(--border-radius);
+  }
+
+  &__settings {
     background-color: black;
     border-radius: var(--border-radius);
   }
@@ -297,7 +311,8 @@ const calculatedPercentage = computed(() => {
     background-color: currentColor;
     border: none;
     color: currentColor;
-    height: 1px;
+    height: 3px;
+    opacity: 1;
   }
 
   hr+p {
@@ -312,7 +327,7 @@ const calculatedPercentage = computed(() => {
     border-radius: var(--border-radius);
     font-size: 1.5em;
     text-align: center;
-    margin: var(--space);
+    margin-block: var(--space);
     font-weight: bold;
   }
 
