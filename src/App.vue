@@ -193,7 +193,7 @@ const currencies = [{
   value: 'BGN',
   label: 'Bulgarian Lev'
 }, {
-  value: 'DRAM',
+  value: 'AMD',
   label: 'Armenian Dram'
 }];
 
