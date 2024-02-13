@@ -2,8 +2,10 @@
     <div :class="bemm()">
         <div :class="bemm('control-container')">
             <span v-for="(v) in formattedValues" @click="handleClick(v.value)"
-                :class="[bemm('value'), bemm('value', `${v.label}`), bemm('value', model === v.value ? 'active' : 'inactive')]">{{
-                    v.label }}</span>
+                :class="[bemm('option'), bemm('option', `${v.label}`), bemm('option', model === v.value ? 'active' : 'inactive')]">
+                <Icon :class="bemm('icon')" v-if="v.icon" :name="v.icon" />
+               <span :class="bemm('option-label')">{{ v.label }}</span>
+            </span>
         </div>
         <label for="test" :class="bemm('label')" v-if="label">
             {{ label }}
@@ -14,17 +16,18 @@
 <script lang="ts" setup>
 import { PropType, computed } from "vue";
 import { useBemm } from 'bemm';
+
+import Icon from '@/components/Icon.vue';
+import { SwitchOption } from "./InputSwitch.model";
+
 const bemm = useBemm('input-switch');
 
-interface SwitchOption {
-    value: string, label: string
-}
 const props = defineProps({
     label: {
         type: String,
         default: ""
     },
-    values: {
+    options: {
         type: Array as PropType<string[] | SwitchOption[]>,
         default: ""
     },
@@ -34,18 +37,19 @@ const props = defineProps({
 const model = defineModel()
 const emit = defineEmits(["update:modelValue"]);
 
-const formattedValues = computed<{ label: string, value: string }[]>(() => {
+const formattedValues = computed<SwitchOption[]>(() => {
 
-    if (typeof props.values[0] == 'string') {
-        return props.values.map((v) => {
+    if (typeof props.options[0] == 'string') {
+        return props.options.map((v) => {
             return {
                 label: v,
-                value: v
+                value: v,
+                icon: null
             } as SwitchOption
         })
     }
-    else if (typeof props.values[0] == 'object' && props.values[0].value && props.values[0].label) {
-        return props.values as SwitchOption[]
+    else if (typeof props.options[0] == 'object' && props.options[0].value && props.options[0].label) {
+        return props.options as SwitchOption[]
     } else {
         return []
     }

@@ -11,6 +11,8 @@
   "dependencies": {
     "@sil/storage": "^0.0.7",
     "bemm": "^1.0.4",
+    "locale-currency": "^0.0.2",
+    "open-icon": "^0.0.7",
     "vue": "^3.4.15"
   },
   "devDependencies": {

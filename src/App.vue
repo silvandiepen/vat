@@ -4,40 +4,60 @@
 
     <h1><strong>VAT</strong>Calculator</h1>
 
+
+
     <div :class="bemm('input')">
       <FormField>
-        <InputNumber label="amount" v-model="amount" />
+        <InputSwitch v-model="calcType" :options="calculationOptions" />
+      </FormField>
+      <FormField>
         <FormGroup>
-          <InputNumber label="percentage" v-model="percentage" />
-          <InputSwitch v-model="direction" :values="['add', 'extract']" />
+          <InputNumber label="Amount" v-model="amount" />
+          <InputNumber v-if="calcType == 'percentage'" label="of Amount" v-model="amount2" />
+        </FormGroup>
+        <FormGroup v-if="calcType == CalcType.VAT">
+          <InputNumber label="Percentage" v-model="percentage" />
+          <InputSwitch v-model="direction" :options="directionOptions" />
+          <InputSelect label="Currency" v-model="currency" :options="currencies" />
         </FormGroup>
       </FormField>
     </div>
 
-    <div :class="bemm('result')" v-if="amount !== 0 || percentage !== 0">
+    <div :class="bemm('result')" v-if="calcType == CalcType.PERCENTAGE">
+      <div :class="bemm('column')">
+
+        {{ amount2 }} is <strong>{{ calculatedPercentage }}%</strong> of {{ amount }}
+
+      </div>
+    </div>
+    <div :class="bemm('result')" v-if="calcType == CalcType.VAT && (amount !== 0 || percentage !== 0)">
       <div :class="[bemm('column'), bemm('incl')]" v-if="direction == 'add'">
         <h3>Add</h3>
+
+        <div :class="bemm('amount')">
+          {{ formatCurrency(inclusive.total) }}
+        </div>
         <dl>
           <dt>Price</dt>
-          <dd>{{ amount }}</dd>
+          <dd>{{ formatCurrency(amount) }}</dd>
         </dl>
         <dl>
           <dt>VAT Percentage</dt>
-          <dd>{{ percentage }}</dd>
+          <dd>{{ percentage }}%</dd>
         </dl>
 
         <dl>
           <dt>Total</dt>
-          <dd>{{ inclusive.total }}</dd>
+          <dd>{{ formatCurrency(inclusive.total) }}</dd>
         </dl>
 
         <dl>
           <dt>VAT</dt>
-          <dd>{{ inclusive.vat }}</dd>
+          <dd>{{ formatCurrency(inclusive.vat) }}</dd>
         </dl>
         <hr />
 
-        <p>{{ amount }} + {{ percentage }}%</p>
+        <p>{{ formatCurrency(amount) }} + {{ percentage }}% = {{ formatCurrency(inclusive.total) }}</p>
 
 
       </div>
@@ -45,27 +65,31 @@
         <h3>Extract</h3>
 
 
+        <div :class="bemm('amount')">
+          {{ formatCurrency(exclusive.total) }}
+        </div>
+
         <dl>
           <dt>Price</dt>
-          <dd>{{ amount }}</dd>
+          <dd>{{ formatCurrency(amount) }}</dd>
         </dl>
         <dl>
           <dt>VAT Percentage</dt>
-          <dd>{{ percentage }}</dd>
+          <dd>{{ percentage }}%</dd>
         </dl>
         <dl>
           <dt>Total</dt>
-          <dd>{{ exclusive.total }}</dd>
+          <dd>{{ formatCurrency(exclusive.total) }}</dd>
         </dl>
 
         <dl>
           <dt>VAT</dt>
-          <dd>{{ exclusive.vat }}</dd>
+          <dd>{{ formatCurrency(exclusive.vat) }}</dd>
         </dl>
         <hr />
         <p>
 
-          {{ amount }} - {{ percentage }}% = {{ exclusive.total }}
+          {{ formatCurrency(amount) }} - {{ percentage }}% = {{ formatCurrency(exclusive.total) }}
         </p>
 
       </div>
@@ -73,18 +97,116 @@
   </div>
 </template>
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { FormField, FormGroup, InputNumber, InputSwitch } from './components/form';
+import { computed, onMounted, ref } from 'vue';
+import { FormField, FormGroup, InputNumber, InputSwitch, InputSelect } from '@/components/form';
+import { SwitchOption } from '@/components/form/types';
 import { useBemm } from 'bemm';
+
+import localeCurrency from 'locale-currency';
+import { Icons } from 'open-icon';
+
+const CalcType = {
+  VAT: 'vat',
+  PERCENTAGE: 'percentage'
+} as const;
+type CalcType = typeof CalcType[keyof typeof CalcType];
+
+
+
 const bemm = useBemm('app');
 const amount = ref(1000);
+const amount2 = ref(1000);
 const percentage = ref(20);
+const currency = ref('EUR');
 const direction = ref<'add' | 'extract'>('add');
+const calcType = ref<CalcType>(CalcType.VAT);
+
+const directionOptions: SwitchOption[] = [
+  { value: 'add', label: 'Add', icon: Icons.PLUS_CIRCLE },
+  { value: 'extract', label: 'Extract', icon: Icons.MINUS_CIRCLE }
+]
+
+const calculationOptions: SwitchOption[] = [
+  { value: 'vat', label: 'Get VAT' },
+  { value: 'percentage', label: 'Get Percentage' }
+]
 
 const pad = (n: number, afterComma = 2) => {
 
   return Math.round(n * Math.pow(10, afterComma)) / Math.pow(10, afterComma)
 }
+
+
+const formatCurrency = (n: number) => {
+  return new Intl.NumberFormat(undefined, {
+    style: 'currency',
+    currency: currency.value
+  }).format(n)
+}
+
+const currencies = [{
+  value: 'EUR',
+  label: 'Euro'
+}, {
+  value: 'USD',
+  label: 'US Dollar'
+}, {
+  value: 'GBP',
+  label: 'British Pound'
+}, {
+  value: 'JPY',
+  label: 'Japanese Yen'
+}, {
+  value: 'CNY',
+  label: 'Chinese Yuan'
+}, {
+  value: 'RUB',
+  label: 'Russian Ruble'
+}, {
+  value: 'CHF',
+  label: 'Swiss Franc'
+}, {
+  value: 'AUD',
+  label: 'Australian Dollar'
+}, {
+  value: 'CAD',
+  label: 'Canadian Dollar'
+}, {
+  value: 'SEK',
+  label: 'Swedish Krona'
+}, {
+  value: 'NOK',
+  label: 'Norwegian Krone'
+}, {
+  value: 'DKK',
+  label: 'Danish Krone'
+}, {
+  value: 'PLN',
+  label: 'Polish Zloty'
+}, {
+  value: 'CZK',
+  label: 'Czech Koruna'
+}, {
+  value: 'HUF',
+  label: 'Hungarian Forint'
+}, {
+  value: 'BGN',
+  label: 'Bulgarian Lev'
+}, {
+  value: 'DRAM',
+  label: 'Armenian Dram'
+}];
+
+
+
+onMounted(() => {
+  const userLocale = navigator.language;
+  const lCurrency = localeCurrency.getCurrency(userLocale);
+  if (lCurrency) {
+    currency.value = lCurrency;
+  }
+});
+
 
 
 const inclusive = computed(() => {
@@ -105,7 +227,13 @@ const exclusive = computed(() => {
 });
 
 
-// import HelloWorld from './components/HelloWorld.vue'
+const calculatedPercentage = computed(() => {
+
+
+  return pad((amount2.value / amount.value) * 100)
+
+})
+
 </script>
 
 <style lang="scss">
@@ -163,6 +291,7 @@ const exclusive = computed(() => {
       font-weight: bold;
     }
   }
+
   hr {
     margin-top: var(--space);
     background-color: currentColor;
@@ -170,8 +299,21 @@ const exclusive = computed(() => {
     color: currentColor;
     height: 1px;
   }
-  hr+p{
-    opacity: .5;margin-top: var(--space);
+
+  hr+p {
+    opacity: .5;
+    margin-top: var(--space);
+  }
+
+  &__amount {
+    background-color: var(--foreground);
+    color: var(--background);
+    padding: var(--space);
+    border-radius: var(--border-radius);
+    font-size: 1.5em;
+    text-align: center;
+    margin: var(--space);
+    font-weight: bold;
   }
 
 }
